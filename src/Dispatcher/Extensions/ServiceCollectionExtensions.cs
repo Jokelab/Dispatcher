@@ -5,18 +5,38 @@ namespace Dispatcher.Extensions
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddDispatcher(this IServiceCollection services, Assembly scanAssembly)
+        public static IServiceCollection AddDispatcher(this IServiceCollection services, Action<DispatcherConfiguration> configuration)
         {
-            if (services == null) throw new ArgumentNullException(nameof(services));
+            var config = new DispatcherConfiguration();
+            configuration.Invoke(config);
+            return services.AddDispatcher(config);
+        }
 
+        /// <summary>
+        /// Add dispatcher services for the calling assembly
+        /// </summary>
+        /// <param name="services"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        public static IServiceCollection AddDispatcher(this IServiceCollection services)
+        {
+
+            var config = new DispatcherConfiguration();
+            config.AssembliesToScan.Add(Assembly.GetCallingAssembly());
+            return services.AddDispatcher(config);
+        }
+
+        private static IServiceCollection AddDispatcher(this IServiceCollection services, DispatcherConfiguration configuration)
+        {
             services.AddTransient<IDispatcher, Dispatcher>();
+            foreach(var assembly in configuration.AssembliesToScan)
+            {
+                // commands should have exactly one handler
+                RegisterHandlers(services, assembly, typeof(ICommand), typeof(ICommandHandler<,>), mustHaveOneHandler: true);
 
-            // commands should have exactly one handler
-            RegisterHandlers(services, scanAssembly, typeof(ICommand), typeof(ICommandHandler<,>), mustHaveOneHandler: true);
-
-            // events can have zero or more handlers
-            RegisterHandlers(services, scanAssembly, typeof(IEvent), typeof(IEventHandler<>), mustHaveOneHandler: false);
-
+                // events can have zero or more handlers
+                RegisterHandlers(services, assembly, typeof(IEvent), typeof(IEventHandler<>), mustHaveOneHandler: false);
+            }
             return services;
         }
 

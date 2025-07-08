@@ -1,6 +1,5 @@
 using Dispatcher.Extensions;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
 
 namespace Dispatcher.Tests
 {
@@ -10,7 +9,7 @@ namespace Dispatcher.Tests
         public DispatcherTests()
         {
             var sc = new ServiceCollection();
-            sc.AddDispatcher(Assembly.GetAssembly(GetType())!);
+            sc.AddDispatcher();
             var sp = sc.BuildServiceProvider();
             _dispatcher = sp.GetRequiredService<IDispatcher>();
         }
