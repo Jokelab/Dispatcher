@@ -11,7 +11,7 @@ services.AddDispatcher(config=>
 ```
 
 ## Commands
-Commands can be defined by inheriting the `ICommand<T>` interface, where the T parameter is the response type of the command. A command object should hold the parameters of a request.
+Commands can be defined by inheriting the `ICommand<T>` interface, where the T parameter is the response type of the command. A command object holds the parameters of a request.
 ```C#
 public class GreetingCommand : ICommand<string>
 {
@@ -30,7 +30,7 @@ public class GreetingHandler : ICommandHandler<GreetingCommand, string>
 }
 ```
 
-To use the command, inject the dispatcher via DI and call the `Send` method with the commmand as a parameter. Notice that the HelloWorldGreeting class is decoupled from the GreetingHandler class.
+To use a command, inject the dispatcher via DI and call the `Send` method with the commmand as a parameter. Notice that the HelloWorldGreeting class is decoupled from the GreetingHandler class.
 ```C#
 public class HelloWorldGreeting
 {
@@ -43,7 +43,6 @@ public class HelloWorldGreeting
    public async Task<string> GreetAsync()
    {
        var command = new GreetingCommand { Name = "World" };
-       // Use the dispatcher to send the command and get the response
        var response = await _dispatcher.Send(command);
 
        // Returns "Hello, World!"
