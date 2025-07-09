@@ -21,7 +21,6 @@ namespace Dispatcher.Extensions
         /// <exception cref="ArgumentNullException"></exception>
         public static IServiceCollection AddDispatcher(this IServiceCollection services)
         {
-
             var config = new DispatcherConfiguration();
             config.AssembliesToScan.Add(Assembly.GetCallingAssembly());
             return services.AddDispatcher(config);
@@ -30,14 +29,15 @@ namespace Dispatcher.Extensions
         private static IServiceCollection AddDispatcher(this IServiceCollection services, DispatcherConfiguration configuration)
         {
             services.TryAddTransient<IDispatcher, Dispatcher>();
-            
-            var allTypes = configuration.AssembliesToScan.SelectMany(assembly => assembly.GetTypes());
+            var combinedTypes = new List<Type>();
+            combinedTypes.AddRange(configuration.AssembliesToScan.SelectMany(assembly => assembly.GetTypes()));
+            combinedTypes.AddRange(configuration.Types);
 
             // commands should have exactly one handler
-            RegisterHandlers(services, allTypes, typeof(ICommand), typeof(ICommandHandler<,>), mustHaveOneHandler: true);
+            RegisterHandlers(services, combinedTypes, typeof(ICommand), typeof(ICommandHandler<,>), mustHaveOneHandler: true);
 
             // events can have zero or more handlers
-            RegisterHandlers(services, allTypes, typeof(IEvent), typeof(IEventHandler<>), mustHaveOneHandler: false);
+            RegisterHandlers(services, combinedTypes, typeof(IEvent), typeof(IEventHandler<>), mustHaveOneHandler: false);
             return services;
         }
 

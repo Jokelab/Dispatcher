@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Dispatcher\Dispatcher.csproj" />
+    <ProjectReference Include="..\Dispatcher.OtherAssembly\Dispatcher.OtherAssembly.csproj" />
   </ItemGroup>
 
   <ItemGroup>

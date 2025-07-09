@@ -1,4 +1,5 @@
 using Dispatcher.Extensions;
+using Dispatcher.Tests.Examples;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Dispatcher.Tests
@@ -9,7 +10,7 @@ namespace Dispatcher.Tests
         public DispatcherTests()
         {
             var services = new ServiceCollection();
-            services.AddDispatcher();
+           // services.AddDispatcher();
 
             services.AddDispatcher(configuration =>
             {
@@ -27,20 +28,6 @@ namespace Dispatcher.Tests
             Assert.Equal("Hello, World!", greeting);
         }
 
-        private class GreetingCommand : ICommand<string>
-        {
-            public string? Name { get; set; }
-        }
-
-        private class GreetingHandler : ICommandHandler<GreetingCommand, string>
-        {
-            public Task<string> Handle(GreetingCommand command, CancellationToken cancellationToken)
-            {
-                return Task.FromResult($"Hello, {command.Name}!");
-            }
-        }
-    
-
         [Fact]
         public async Task Basic_publish_event_example()
         {
@@ -48,21 +35,6 @@ namespace Dispatcher.Tests
             var tasks = _dispatcher.Publish(userUpdatedEvent);
             await Task.WhenAll(tasks);
         }
-
-        public class UserUpdatedHandler : IEventHandler<UserUpdated>
-        {
-            public Task Handle(UserUpdated @event, CancellationToken cancellationToken)
-            {
-                Console.WriteLine($"User updated: {@event.UserName}");
-                return Task.CompletedTask;
-            }
-        }
-     
-        public class UserUpdated : IEvent
-        {
-            public string? UserName { get; set; }
-        }
-
     }
 
 }
