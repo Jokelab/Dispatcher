@@ -39,23 +39,7 @@ namespace Dispatcher.Tests
                 return Task.FromResult($"Hello, {command.Name}!");
             }
         }
-
-        public class User
-        {
-            private readonly IDispatcher _dispatcher;
-            private string _name = "John Doe";
-            public User(IDispatcher dispatcher)
-            {
-                _dispatcher = dispatcher;
-            }
-
-            public async Task SaveUser()
-            {
-                var userUpdatedEvent = new UserUpdated { UserName = _name };
-                var tasks = _dispatcher.Publish(userUpdatedEvent);
-                await Task.WhenAll(tasks);
-            }
-        }
+    
 
         [Fact]
         public async Task Basic_publish_event_example()
@@ -78,8 +62,6 @@ namespace Dispatcher.Tests
         {
             public string? UserName { get; set; }
         }
-
-
 
     }
 

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Reflection;
 
 namespace Dispatcher.Extensions
@@ -28,22 +29,22 @@ namespace Dispatcher.Extensions
 
         private static IServiceCollection AddDispatcher(this IServiceCollection services, DispatcherConfiguration configuration)
         {
-            services.AddTransient<IDispatcher, Dispatcher>();
-            foreach(var assembly in configuration.AssembliesToScan)
-            {
-                // commands should have exactly one handler
-                RegisterHandlers(services, assembly, typeof(ICommand), typeof(ICommandHandler<,>), mustHaveOneHandler: true);
+            services.TryAddTransient<IDispatcher, Dispatcher>();
+            
+            var allTypes = configuration.AssembliesToScan.SelectMany(assembly => assembly.GetTypes());
 
-                // events can have zero or more handlers
-                RegisterHandlers(services, assembly, typeof(IEvent), typeof(IEventHandler<>), mustHaveOneHandler: false);
-            }
+            // commands should have exactly one handler
+            RegisterHandlers(services, allTypes, typeof(ICommand), typeof(ICommandHandler<,>), mustHaveOneHandler: true);
+
+            // events can have zero or more handlers
+            RegisterHandlers(services, allTypes, typeof(IEvent), typeof(IEventHandler<>), mustHaveOneHandler: false);
             return services;
         }
 
-        private static void RegisterHandlers(IServiceCollection services, Assembly scanAssembly, Type messageInterfaceType, Type messageHandlerInterfaceType, bool mustHaveOneHandler)
+        private static void RegisterHandlers(IServiceCollection services, IEnumerable<Type> allTypes, Type messageInterfaceType, Type messageHandlerInterfaceType, bool mustHaveOneHandler)
         {
             // find all closed implementations of ICommandHandler<,> or IEventHandler<> in the assembly
-            var handlerTypes = scanAssembly.GetTypes()
+            var handlerTypes = allTypes
                 .Where(t => !t.IsAbstract && !t.IsInterface && !t.IsGenericTypeDefinition)
                 .SelectMany(t => t.GetInterfaces()
                     .Where(i => i.IsGenericType && i.GetGenericTypeDefinition() == messageHandlerInterfaceType)
@@ -52,7 +53,7 @@ namespace Dispatcher.Extensions
                 .ToList();
 
             // find all message implementations in the assembly
-            var messageTypes = scanAssembly.GetTypes()
+            var messageTypes = allTypes
                 .Where(t => !t.IsAbstract && !t.IsInterface && messageInterfaceType.IsAssignableFrom(t))
                 .ToList();
 
@@ -89,7 +90,7 @@ namespace Dispatcher.Extensions
 
                 foreach (var match in mostDerivedHandlers)
                 {
-                    services.AddTransient(match.HandlerInterface, match.HandlerType);
+                    services.TryAddTransient(match.HandlerInterface, match.HandlerType);
                 }
             }
         }
