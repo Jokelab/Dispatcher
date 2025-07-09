@@ -8,9 +8,15 @@ namespace Dispatcher.Tests
         private readonly IDispatcher _dispatcher;
         public DispatcherTests()
         {
-            var sc = new ServiceCollection();
-            sc.AddDispatcher();
-            var sp = sc.BuildServiceProvider();
+            var services = new ServiceCollection();
+            services.AddDispatcher();
+
+            services.AddDispatcher(configuration =>
+            {
+                configuration.AssembliesToScan.Add(typeof(GreetingCommand).Assembly);
+            });
+
+            var sp = services.BuildServiceProvider();
             _dispatcher = sp.GetRequiredService<IDispatcher>();
         }
 
@@ -34,6 +40,23 @@ namespace Dispatcher.Tests
             }
         }
 
+        public class User
+        {
+            private readonly IDispatcher _dispatcher;
+            private string _name = "John Doe";
+            public User(IDispatcher dispatcher)
+            {
+                _dispatcher = dispatcher;
+            }
+
+            public async Task SaveUser()
+            {
+                var userUpdatedEvent = new UserUpdated { UserName = _name };
+                var tasks = _dispatcher.Publish(userUpdatedEvent);
+                await Task.WhenAll(tasks);
+            }
+        }
+
         [Fact]
         public async Task Basic_publish_event_example()
         {
@@ -42,6 +65,15 @@ namespace Dispatcher.Tests
             await Task.WhenAll(tasks);
         }
 
+        public class UserUpdatedHandler : IEventHandler<UserUpdated>
+        {
+            public Task Handle(UserUpdated @event, CancellationToken cancellationToken)
+            {
+                Console.WriteLine($"User updated: {@event.UserName}");
+                return Task.CompletedTask;
+            }
+        }
+     
         public class UserUpdated : IEvent
         {
             public string? UserName { get; set; }
