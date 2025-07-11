@@ -2,6 +2,7 @@
 using Dispatcher.OtherAssembly;
 using Dispatcher.Tests.Examples;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 
 namespace Dispatcher.Tests.Extensions
 {
@@ -86,15 +87,19 @@ namespace Dispatcher.Tests.Extensions
         {
             //arrange
             var services = new ServiceCollection();
+
             //act
             services.AddDispatcher(config => config.AssembliesToScan.Add(typeof(UpdateUserCommand).Assembly));
+
             // Assert
             var serviceProvider = services.BuildServiceProvider();
             var dispatcher = serviceProvider.GetService<IDispatcher>();
+
             Assert.NotNull(dispatcher);
+            var handlerTypeInterface = typeof(ICommandHandler<,>).MakeGenericType(typeof(UpdateUserCommand), typeof(bool));
+            var handler = serviceProvider.GetService(handlerTypeInterface);
+            Assert.NotNull(handler);
+
         }
-
-
-
     }
 }
