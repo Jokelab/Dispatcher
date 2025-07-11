@@ -14,7 +14,7 @@
                 Id = new Random().Next()
             };
 
-            _dispatcher.Publish(new UserCreated(user));
+            _dispatcher.Publish(new UserCreated(user), cancellationToken);
 
             return Task.FromResult(user);
         }

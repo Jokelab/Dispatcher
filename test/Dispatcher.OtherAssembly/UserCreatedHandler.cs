@@ -4,7 +4,7 @@
     {
         public Task Handle(UserCreated @event, CancellationToken cancellationToken)
         {
-            Console.WriteLine($"Created user ID: {@event.User.Id}, Name: {@event.User.Name} ");
+            Console.WriteLine($"Created user ID: {@event.User.Id}, Name: {@event.User.Name}");
             return Task.CompletedTask;
         }
     }

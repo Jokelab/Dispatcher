@@ -52,6 +52,6 @@ namespace Dispatcher.Tests
             var model = await dispatcher.Send(createUserCommand);
 
         }
-    }
 
+    }
 }
