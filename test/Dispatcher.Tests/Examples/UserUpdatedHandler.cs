@@ -1,13 +1,10 @@
-﻿using Dispatcher.Interfaces;
+﻿namespace Dispatcher.Tests.Examples;
 
-namespace Dispatcher.Tests.Examples
+public class UserUpdatedHandler : IEventHandler<UserUpdated>
 {
-    public class UserUpdatedHandler : IEventHandler<UserUpdated>
+    public Task Handle(UserUpdated @event, CancellationToken cancellationToken)
     {
-        public Task Handle(UserUpdated @event, CancellationToken cancellationToken)
-        {
-            Console.WriteLine($"User updated: {@event.UserName}");
-            return Task.CompletedTask;
-        }
+        Console.WriteLine($"User updated: {@event.UserName}");
+        return Task.CompletedTask;
     }
 }

@@ -1,8 +1,5 @@
-﻿using Dispatcher.Interfaces;
+﻿namespace Dispatcher.OtherAssembly;
 
-namespace Dispatcher.OtherAssembly
+public record CreateUserRequest(string Name) : IRequest<UserModel>
 {
-    public record CreateUserRequest(string Name) : IRequest<UserModel>
-    {
-    }
 }

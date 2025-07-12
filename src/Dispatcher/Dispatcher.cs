@@ -1,5 +1,4 @@
 ﻿
-using Dispatcher.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Dispatcher;

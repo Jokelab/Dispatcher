@@ -1,10 +1,7 @@
-﻿using Dispatcher.Interfaces;
+﻿namespace Dispatcher.Tests.Examples;
 
-namespace Dispatcher.Tests.Examples
+
+public class GreetingRequest : IRequest<string>
 {
-
-    public class GreetingRequest : IRequest<string>
-    {
-        public string? Name { get; set; }
-    }
+    public string? Name { get; set; }
 }

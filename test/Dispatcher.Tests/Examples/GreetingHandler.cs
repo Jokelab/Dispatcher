@@ -1,12 +1,9 @@
-﻿using Dispatcher.Interfaces;
+﻿namespace Dispatcher.Tests.Examples;
 
-namespace Dispatcher.Tests.Examples
+public class GreetingHandler : IRequestHandler<GreetingRequest, string>
 {
-    public class GreetingHandler : IRequestHandler<GreetingRequest, string>
+    public Task<string> Handle(GreetingRequest request, CancellationToken cancellationToken)
     {
-        public Task<string> Handle(GreetingRequest request, CancellationToken cancellationToken)
-        {
-            return Task.FromResult($"Hello, {request.Name}!");
-        }
+        return Task.FromResult($"Hello, {request.Name}!");
     }
 }

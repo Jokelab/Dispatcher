@@ -1,4 +1,4 @@
-﻿namespace Dispatcher.Interfaces;
+﻿namespace Dispatcher;
 public interface IDispatcher
 {
     public Task<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default);
