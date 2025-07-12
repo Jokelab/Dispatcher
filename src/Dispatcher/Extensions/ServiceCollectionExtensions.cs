@@ -31,19 +31,29 @@ namespace Dispatcher.Extensions
             services.TryAddTransient<IDispatcher, Dispatcher>();
             var combinedTypes = new List<Type>();
             combinedTypes.AddRange(configuration.AssembliesToScan.SelectMany(assembly => assembly.GetTypes()));
-            combinedTypes.AddRange(configuration.Types);
+            combinedTypes.AddRange(configuration.ExplicitTypes);
 
             // requests should have exactly one handler
             RegisterHandlers(services, combinedTypes, typeof(IRequest), typeof(IRequestHandler<,>), mustHaveOneHandler: true);
 
             // events can have zero or more handlers
             RegisterHandlers(services, combinedTypes, typeof(IEvent), typeof(IEventHandler<>), mustHaveOneHandler: false);
+
+            // register behaviors
+            foreach (var behaviorType in configuration.OpenBehaviors)
+            {
+                if (!behaviorType.IsGenericTypeDefinition)
+                {
+                    throw new InvalidOperationException($"Behavior type {behaviorType.FullName} must be a generic type definition.");
+                }
+                services.AddTransient(typeof(IBehavior<,>), behaviorType);
+            }
             return services;
         }
 
         private static void RegisterHandlers(IServiceCollection services, IEnumerable<Type> allTypes, Type messageInterfaceType, Type messageHandlerInterfaceType, bool mustHaveOneHandler)
         {
-            // find all closed implementations of IrequestHandler<,> or IEventHandler<> in the assembly
+            // find all closed implementations of IRequestHandler<,> or IEventHandler<> in the assembly
             var handlerTypes = allTypes
                 .Where(t => !t.IsAbstract && !t.IsInterface && !t.IsGenericTypeDefinition)
                 .SelectMany(t => t.GetInterfaces()

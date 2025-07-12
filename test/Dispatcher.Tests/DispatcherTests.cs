@@ -15,6 +15,7 @@ namespace Dispatcher.Tests
             services.AddDispatcher(configuration =>
             {
                 configuration.AssembliesToScan.Add(typeof(GreetingRequest).Assembly);
+                configuration.OpenBehaviors.Add(typeof(LoggingBehavior<,>));
             });
 
             var sp = services.BuildServiceProvider();

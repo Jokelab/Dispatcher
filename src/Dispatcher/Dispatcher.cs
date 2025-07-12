@@ -7,7 +7,7 @@ internal class Dispatcher(IServiceProvider serviceProvider) : IDispatcher
     private const string HandleMethodName = "Handle";
     private readonly IServiceProvider _serviceProvider = serviceProvider;
 
-    public Task<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
+    public async Task<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
     {
         // Dynamically construct the handler type interface so it can be resolved from the service provider
         var handlerTypeInterface = typeof(IRequestHandler<,>).MakeGenericType(request.GetType(), typeof(TResponse));
@@ -17,17 +17,27 @@ internal class Dispatcher(IServiceProvider serviceProvider) : IDispatcher
             throw new InvalidOperationException($"No handler registered for request type {request.GetType().FullName}.");
         }
 
+        var behaviors = _serviceProvider.GetServices(typeof(IBehavior<,>).MakeGenericType(request.GetType(), typeof(TResponse))).Reverse();
+
         // Use reflection to invoke the Handle method
         var handleMethod = handlerTypeInterface.GetMethod(HandleMethodName);
         if (handleMethod == null)
             throw new InvalidOperationException($"{handlerTypeInterface.GetType().FullName} does not implement Handle method.");
 
-        var task = (Task<TResponse>?)handleMethod.Invoke(handler, [request, cancellationToken]);
-        if (task == null)
+        Func<Task<TResponse>> handlerDelegate = () => (Task<TResponse>?)handleMethod.Invoke(handler, [request, cancellationToken])!;
+        foreach (var behavior in behaviors)
         {
-            throw new InvalidOperationException($"Handle method of {handler.GetType().FullName} returned null.");
+            // Dynamically construct the behavior type interface so it can be resolved from the service provider
+            var behaviorTypeInterface = typeof(IBehavior<,>).MakeGenericType(request.GetType(), typeof(TResponse));
+            var behaviorHandleMethod = behaviorTypeInterface.GetMethod(HandleMethodName);
+            if (behaviorHandleMethod == null)
+                throw new InvalidOperationException($"{behaviorTypeInterface.GetType().FullName} does not implement Handle method.");
+            // Wrap the handler delegate with the behavior
+            var previousHandler = handlerDelegate;
+            handlerDelegate = () => (Task<TResponse>?)behaviorHandleMethod.Invoke(behavior, [request, previousHandler, cancellationToken])!;
         }
-        return task;
+
+        return await handlerDelegate().ConfigureAwait(false);
     }
 
     public IEnumerable<Task> Publish(IEvent @event, CancellationToken cancellationToken = default)

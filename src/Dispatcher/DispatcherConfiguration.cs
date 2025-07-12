@@ -10,8 +10,10 @@ namespace Dispatcher
         public List<Assembly> AssembliesToScan { get; } = [];
 
         /// <summary>
-        /// Add types to scan for requests, events and handlers
+        /// Add explicit types for requests, events and handlers
         /// </summary>
-        public List<Type> Types { get; } = [];
+        public List<Type> ExplicitTypes { get; } = [];
+        public List<Type> OpenBehaviors { get; } = [];
+      
     }
 }

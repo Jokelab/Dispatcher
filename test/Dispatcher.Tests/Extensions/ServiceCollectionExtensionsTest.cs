@@ -46,7 +46,7 @@ namespace Dispatcher.Tests.Extensions
             var services = new ServiceCollection();
 
             //act and assert
-            Assert.Throws<InvalidOperationException>(() => services.AddDispatcher(config => config.Types.Add(typeof(GreetingRequest))));
+            Assert.Throws<InvalidOperationException>(() => services.AddDispatcher(config => config.ExplicitTypes.Add(typeof(GreetingRequest))));
         }
 
         [Fact]
@@ -56,7 +56,7 @@ namespace Dispatcher.Tests.Extensions
             var services = new ServiceCollection();
 
             //act and assert
-            services.AddDispatcher(config => config.Types.Add(typeof(UserUpdated)));
+            services.AddDispatcher(config => config.ExplicitTypes.Add(typeof(UserUpdated)));
         }
 
         [Fact]
@@ -66,7 +66,7 @@ namespace Dispatcher.Tests.Extensions
             var services = new ServiceCollection();
 
             //act and assert
-            Assert.Throws<InvalidOperationException>(() => services.AddDispatcher(config => config.Types.AddRange([
+            Assert.Throws<InvalidOperationException>(() => services.AddDispatcher(config => config.ExplicitTypes.AddRange([
                 typeof(UpdateUserRequest),
                 typeof(UpdateUserHandler),
                 typeof(SecondUpdateUserHandler),
