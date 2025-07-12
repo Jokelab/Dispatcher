@@ -18,6 +18,8 @@ internal class Dispatcher(IServiceProvider serviceProvider) : IDispatcher
         }
 
         var behaviors = _serviceProvider.GetServices(typeof(IBehavior<,>).MakeGenericType(request.GetType(), typeof(TResponse))).Reverse();
+        var behaviorTypeInterface = typeof(IBehavior<,>).MakeGenericType(request.GetType(), typeof(TResponse));
+        var behaviorHandleMethod = behaviorTypeInterface.GetMethod(HandleMethodName);
 
         // Use reflection to invoke the Handle method
         var handleMethod = handlerTypeInterface.GetMethod(HandleMethodName);
@@ -27,9 +29,6 @@ internal class Dispatcher(IServiceProvider serviceProvider) : IDispatcher
         Func<Task<TResponse>> handlerDelegate = () => (Task<TResponse>?)handleMethod.Invoke(handler, [request, cancellationToken])!;
         foreach (var behavior in behaviors)
         {
-            // Dynamically construct the behavior type interface so it can be resolved from the service provider
-            var behaviorTypeInterface = typeof(IBehavior<,>).MakeGenericType(request.GetType(), typeof(TResponse));
-            var behaviorHandleMethod = behaviorTypeInterface.GetMethod(HandleMethodName);
             if (behaviorHandleMethod == null)
                 throw new InvalidOperationException($"{behaviorTypeInterface.GetType().FullName} does not implement Handle method.");
             // Wrap the handler delegate with the behavior
