@@ -1,4 +1,5 @@
-﻿public interface IRequestHandler<TRequest, TResponse> where TRequest : IRequest<TResponse>
+﻿namespace Dispatcher.Interfaces;
+public interface IRequestHandler<TRequest, TResponse> where TRequest : IRequest<TResponse>
 {
     Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken);
 }

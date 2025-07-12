@@ -1,8 +1,8 @@
 ﻿using Dispatcher.Extensions;
+using Dispatcher.Interfaces;
 using Dispatcher.OtherAssembly;
 using Dispatcher.Tests.Examples;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 
 namespace Dispatcher.Tests.Extensions
 {

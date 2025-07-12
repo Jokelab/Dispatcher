@@ -1,4 +1,4 @@
-﻿using Dispatcher;
+﻿using Dispatcher.Interfaces;
 using Dispatcher.OtherAssembly;
 
-public record UserCreated(UserModel User): IEvent;
+public record UserCreated(UserModel User) : IEvent;

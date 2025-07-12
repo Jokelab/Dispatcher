@@ -1,9 +1,12 @@
-﻿namespace Dispatcher.OtherAssembly
+﻿using Dispatcher.Interfaces;
+
+namespace Dispatcher.OtherAssembly
 {
     public class CreateUserHandler : IRequestHandler<CreateUserRequest, UserModel>
     {
         private readonly IDispatcher _dispatcher;
-        public CreateUserHandler(IDispatcher dispatcher) {
+        public CreateUserHandler(IDispatcher dispatcher)
+        {
             _dispatcher = dispatcher;
         }
         public Task<UserModel> Handle(CreateUserRequest request, CancellationToken cancellationToken)

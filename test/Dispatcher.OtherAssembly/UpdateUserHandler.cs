@@ -1,6 +1,8 @@
-﻿namespace Dispatcher.OtherAssembly
+﻿using Dispatcher.Interfaces;
+
+namespace Dispatcher.OtherAssembly
 {
-    public class UpdateUserHandler: IRequestHandler<UpdateUserRequest, bool>
+    public class UpdateUserHandler : IRequestHandler<UpdateUserRequest, bool>
     {
         public Task<bool> Handle(UpdateUserRequest request, CancellationToken cancellationToken)
         {

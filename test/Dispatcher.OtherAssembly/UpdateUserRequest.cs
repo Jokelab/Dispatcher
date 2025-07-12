@@ -1,4 +1,6 @@
-﻿namespace Dispatcher.OtherAssembly
+﻿using Dispatcher.Interfaces;
+
+namespace Dispatcher.OtherAssembly
 {
     public class UpdateUserRequest : IRequest<bool>
     {

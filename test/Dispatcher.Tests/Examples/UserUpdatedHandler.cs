@@ -1,4 +1,6 @@
-﻿namespace Dispatcher.Tests.Examples
+﻿using Dispatcher.Interfaces;
+
+namespace Dispatcher.Tests.Examples
 {
     public class UserUpdatedHandler : IEventHandler<UserUpdated>
     {

@@ -1,4 +1,6 @@
-﻿namespace Dispatcher.OtherAssembly
+﻿using Dispatcher.Interfaces;
+
+namespace Dispatcher.OtherAssembly
 {
     internal class UserCreatedHandler : IEventHandler<UserCreated>
     {
