@@ -11,7 +11,7 @@ services.AddDispatcher(config=>
 ```
 
 ## Requests
-Requests can be defined by inheriting the `IRequest<TResponse>` interface, where the TResponse parameter is the response type of the Request. A request object holds the parameters of a request.
+Requests can be defined by inheriting the `IRequest<TResponse>` interface, where the TResponse parameter is the response type of the request. A request object holds the parameters of a request.
 ```C#
 public class GreetingRequest : IRequest<string>
 {
@@ -19,13 +19,13 @@ public class GreetingRequest : IRequest<string>
 }
 
 ```
-Define a handler that processes the Request and returns a result. There must be exactly one handler for a request.
+Define a handler that processes the request and returns a result. There must be exactly one handler for a request.
 ```C#
 public class GreetingHandler : IRequestHandler<GreetingRequest, string>
 {
-   public Task<string> Handle(GreetingRequest Request, CancellationToken cancellationToken)
+   public Task<string> Handle(GreetingRequest request, CancellationToken cancellationToken)
    {
-       return Task.FromResult($"Hello, {Request.Name}!");
+       return Task.FromResult($"Hello, {request.Name}!");
    }
 }
 ```
@@ -42,8 +42,8 @@ public class HelloWorldGreeting
 
    public async Task<string> GreetAsync()
    {
-       var Request = new GreetingRequest { Name = "World" };
-       var response = await _dispatcher.Send(Request);
+       var request = new GreetingRequest { Name = "World" };
+       var response = await _dispatcher.Send(request);
 
        // Returns "Hello, World!"
        return response;
