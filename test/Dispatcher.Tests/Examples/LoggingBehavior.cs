@@ -7,7 +7,6 @@ public class LoggingBehavior<TRequest, TResponse> : IBehavior<TRequest, TRespons
     {
         Console.WriteLine($"[Start] Handling {typeof(TRequest).Name}");
         var response = await next();
-
         Console.WriteLine($"[End] Handling {typeof(TRequest).Name}");
         return response;
     }

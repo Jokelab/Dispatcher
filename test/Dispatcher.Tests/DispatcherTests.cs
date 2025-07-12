@@ -22,36 +22,85 @@ namespace Dispatcher.Tests
         }
 
         [Fact]
-        public async Task Basic_dispatch_request_example()
+        public async Task Send_dispatches_basic_command()
         {
             var greeting = await _dispatcher.Send(new GreetingRequest { Name = "World" });
             Assert.Equal("Hello, World!", greeting);
         }
 
         [Fact]
-        public async Task Basic_publish_event_example()
+        public async Task Publish_dispatches_basic_event()
         {
             var userUpdatedEvent = new UserUpdated { UserName = "John Doe" };
             var tasks = _dispatcher.Publish(userUpdatedEvent);
+            Assert.NotEmpty(tasks);
             await Task.WhenAll(tasks);
         }
 
         [Fact]
         public async Task Event_can_be_published_from_requestHandler()
         {
+            // arrange
             var services = new ServiceCollection();
+            var eventHandlerCalled = false;
             services.AddDispatcher(configuration =>
             {
                 configuration.AssembliesToScan.Add(typeof(CreateUserRequest).Assembly);
             });
 
+            services.AddSingleton<IEventHandler<UserCreated>>(new TestUserCreatedHandler(() 
+                => eventHandlerCalled = true
+                ));
+
             var sp = services.BuildServiceProvider();
             var dispatcher = sp.GetRequiredService<IDispatcher>();
 
             var createUserrequest = new CreateUserRequest("Test name");
+
+            // act
             var model = await dispatcher.Send(createUserrequest);
 
+            // Assert
+            Assert.NotNull(model);
+            Assert.True(eventHandlerCalled, "UserCreated event handler was not called.");
         }
 
+        // Test handler implementation
+        private class TestUserCreatedHandler : IEventHandler<UserCreated>
+        {
+            private readonly Action _onHandle;
+            public TestUserCreatedHandler(Action onHandle) => _onHandle = onHandle;
+            public Task Handle(UserCreated @event, CancellationToken cancellationToken = default)
+            {
+                _onHandle();
+                return Task.CompletedTask;
+            }
+        }
+
+        [Fact]
+        public async Task LoggingBehavior_should_be_invoked_when_added_to_OpenBehaviors()
+        {
+            // Arrange
+            var services = new ServiceCollection();
+            services.AddDispatcher(configuration =>
+            {
+                configuration.AssembliesToScan.Add(typeof(GreetingRequest).Assembly);
+                configuration.OpenBehaviors.Add(typeof(LoggingBehavior<,>));
+            });
+
+            var sp = services.BuildServiceProvider();
+            var dispatcher = sp.GetRequiredService<IDispatcher>();
+
+            using var consoleOutput = new StringWriter();
+            Console.SetOut(consoleOutput);
+
+            // Act
+            await dispatcher.Send(new GreetingRequest { Name = "Test" });
+
+            // Assert
+            var output = consoleOutput.ToString();
+            Assert.Contains("[Start] Handling GreetingRequest", output);
+            Assert.Contains("[End] Handling GreetingRequest", output);
+        }
     }
 }
