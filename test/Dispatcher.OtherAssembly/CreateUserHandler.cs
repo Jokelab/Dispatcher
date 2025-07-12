@@ -1,16 +1,16 @@
 ﻿namespace Dispatcher.OtherAssembly
 {
-    public class CreateUserHandler : ICommandHandler<CreateUserCommand, UserModel>
+    public class CreateUserHandler : IRequestHandler<CreateUserRequest, UserModel>
     {
         private readonly IDispatcher _dispatcher;
         public CreateUserHandler(IDispatcher dispatcher) {
             _dispatcher = dispatcher;
         }
-        public Task<UserModel> Handle(CreateUserCommand command, CancellationToken cancellationToken)
+        public Task<UserModel> Handle(CreateUserRequest request, CancellationToken cancellationToken)
         {
             var user = new UserModel
             {
-                Name = command.Name,
+                Name = request.Name,
                 Id = new Random().Next()
             };
 

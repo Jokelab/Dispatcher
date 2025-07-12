@@ -40,13 +40,13 @@ namespace Dispatcher.Tests.Extensions
         }
 
         [Fact]
-        public void AddDispatcher_ShouldThrowException_When_CommandHandlerNotFound()
+        public void AddDispatcher_ShouldThrowException_When_requestHandlerNotFound()
         {
             //arrange
             var services = new ServiceCollection();
 
             //act and assert
-            Assert.Throws<InvalidOperationException>(() => services.AddDispatcher(config => config.Types.Add(typeof(GreetingCommand))));
+            Assert.Throws<InvalidOperationException>(() => services.AddDispatcher(config => config.Types.Add(typeof(GreetingRequest))));
         }
 
         [Fact]
@@ -60,23 +60,23 @@ namespace Dispatcher.Tests.Extensions
         }
 
         [Fact]
-        public void AddDispatcher_ThrowException_When_MultipleCommandHandlersFound()
+        public void AddDispatcher_ThrowException_When_MultiplerequestHandlersFound()
         {
             //arrange
             var services = new ServiceCollection();
 
             //act and assert
             Assert.Throws<InvalidOperationException>(() => services.AddDispatcher(config => config.Types.AddRange([
-                typeof(UpdateUserCommand),
+                typeof(UpdateUserRequest),
                 typeof(UpdateUserHandler),
                 typeof(SecondUpdateUserHandler),
                 ]))
             );
         }
 
-        private class SecondUpdateUserHandler : ICommandHandler<UpdateUserCommand, bool>
+        private class SecondUpdateUserHandler : IRequestHandler<UpdateUserRequest, bool>
         {
-            public Task<bool> Handle(UpdateUserCommand command, CancellationToken cancellationToken)
+            public Task<bool> Handle(UpdateUserRequest request, CancellationToken cancellationToken)
             {
                 return Task.FromResult(true);
             }
@@ -89,14 +89,14 @@ namespace Dispatcher.Tests.Extensions
             var services = new ServiceCollection();
 
             //act
-            services.AddDispatcher(config => config.AssembliesToScan.Add(typeof(UpdateUserCommand).Assembly));
+            services.AddDispatcher(config => config.AssembliesToScan.Add(typeof(UpdateUserRequest).Assembly));
 
             // Assert
             var serviceProvider = services.BuildServiceProvider();
             var dispatcher = serviceProvider.GetService<IDispatcher>();
 
             Assert.NotNull(dispatcher);
-            var handlerTypeInterface = typeof(ICommandHandler<,>).MakeGenericType(typeof(UpdateUserCommand), typeof(bool));
+            var handlerTypeInterface = typeof(IRequestHandler<,>).MakeGenericType(typeof(UpdateUserRequest), typeof(bool));
             var handler = serviceProvider.GetService(handlerTypeInterface);
             Assert.NotNull(handler);
 

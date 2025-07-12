@@ -1,10 +1,10 @@
 ﻿namespace Dispatcher.Tests.Examples
 {
-    public class GreetingHandler : ICommandHandler<GreetingCommand, string>
+    public class GreetingHandler : IRequestHandler<GreetingRequest, string>
     {
-        public Task<string> Handle(GreetingCommand command, CancellationToken cancellationToken)
+        public Task<string> Handle(GreetingRequest request, CancellationToken cancellationToken)
         {
-            return Task.FromResult($"Hello, {command.Name}!");
+            return Task.FromResult($"Hello, {request.Name}!");
         }
     }
 }

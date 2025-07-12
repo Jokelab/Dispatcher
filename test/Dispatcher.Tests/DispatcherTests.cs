@@ -14,7 +14,7 @@ namespace Dispatcher.Tests
             var services = new ServiceCollection();
             services.AddDispatcher(configuration =>
             {
-                configuration.AssembliesToScan.Add(typeof(GreetingCommand).Assembly);
+                configuration.AssembliesToScan.Add(typeof(GreetingRequest).Assembly);
             });
 
             var sp = services.BuildServiceProvider();
@@ -22,9 +22,9 @@ namespace Dispatcher.Tests
         }
 
         [Fact]
-        public async Task Basic_dispatch_command_example()
+        public async Task Basic_dispatch_request_example()
         {
-            var greeting = await _dispatcher.Send(new GreetingCommand { Name = "World" });
+            var greeting = await _dispatcher.Send(new GreetingRequest { Name = "World" });
             Assert.Equal("Hello, World!", greeting);
         }
 
@@ -37,19 +37,19 @@ namespace Dispatcher.Tests
         }
 
         [Fact]
-        public async Task Event_can_be_published_from_commandHandler()
+        public async Task Event_can_be_published_from_requestHandler()
         {
             var services = new ServiceCollection();
             services.AddDispatcher(configuration =>
             {
-                configuration.AssembliesToScan.Add(typeof(CreateUserCommand).Assembly);
+                configuration.AssembliesToScan.Add(typeof(CreateUserRequest).Assembly);
             });
 
             var sp = services.BuildServiceProvider();
             var dispatcher = sp.GetRequiredService<IDispatcher>();
 
-            var createUserCommand = new CreateUserCommand("Test name");
-            var model = await dispatcher.Send(createUserCommand);
+            var createUserrequest = new CreateUserRequest("Test name");
+            var model = await dispatcher.Send(createUserrequest);
 
         }
 

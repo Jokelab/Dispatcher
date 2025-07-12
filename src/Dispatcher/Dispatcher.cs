@@ -7,14 +7,14 @@ internal class Dispatcher(IServiceProvider serviceProvider) : IDispatcher
     private const string HandleMethodName = "Handle";
     private readonly IServiceProvider _serviceProvider = serviceProvider;
 
-    public Task<TResponse> Send<TResponse>(ICommand<TResponse> command, CancellationToken cancellationToken = default)
+    public Task<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
     {
         // Dynamically construct the handler type interface so it can be resolved from the service provider
-        var handlerTypeInterface = typeof(ICommandHandler<,>).MakeGenericType(command.GetType(), typeof(TResponse));
+        var handlerTypeInterface = typeof(IRequestHandler<,>).MakeGenericType(request.GetType(), typeof(TResponse));
         var handler = _serviceProvider.GetService(handlerTypeInterface);
         if (handler == null)
         {
-            throw new InvalidOperationException($"No handler registered for command type {command.GetType().FullName}.");
+            throw new InvalidOperationException($"No handler registered for request type {request.GetType().FullName}.");
         }
 
         // Use reflection to invoke the Handle method
@@ -22,7 +22,7 @@ internal class Dispatcher(IServiceProvider serviceProvider) : IDispatcher
         if (handleMethod == null)
             throw new InvalidOperationException($"{handlerTypeInterface.GetType().FullName} does not implement Handle method.");
 
-        var task = (Task<TResponse>?)handleMethod.Invoke(handler, [command, cancellationToken]);
+        var task = (Task<TResponse>?)handleMethod.Invoke(handler, [request, cancellationToken]);
         if (task == null)
         {
             throw new InvalidOperationException($"Handle method of {handler.GetType().FullName} returned null.");

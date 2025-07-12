@@ -33,8 +33,8 @@ namespace Dispatcher.Extensions
             combinedTypes.AddRange(configuration.AssembliesToScan.SelectMany(assembly => assembly.GetTypes()));
             combinedTypes.AddRange(configuration.Types);
 
-            // commands should have exactly one handler
-            RegisterHandlers(services, combinedTypes, typeof(ICommand), typeof(ICommandHandler<,>), mustHaveOneHandler: true);
+            // requests should have exactly one handler
+            RegisterHandlers(services, combinedTypes, typeof(IRequest), typeof(IRequestHandler<,>), mustHaveOneHandler: true);
 
             // events can have zero or more handlers
             RegisterHandlers(services, combinedTypes, typeof(IEvent), typeof(IEventHandler<>), mustHaveOneHandler: false);
@@ -43,7 +43,7 @@ namespace Dispatcher.Extensions
 
         private static void RegisterHandlers(IServiceCollection services, IEnumerable<Type> allTypes, Type messageInterfaceType, Type messageHandlerInterfaceType, bool mustHaveOneHandler)
         {
-            // find all closed implementations of ICommandHandler<,> or IEventHandler<> in the assembly
+            // find all closed implementations of IrequestHandler<,> or IEventHandler<> in the assembly
             var handlerTypes = allTypes
                 .Where(t => !t.IsAbstract && !t.IsInterface && !t.IsGenericTypeDefinition)
                 .SelectMany(t => t.GetInterfaces()
@@ -59,7 +59,7 @@ namespace Dispatcher.Extensions
 
             foreach (var msgType in messageTypes)
             {
-                // Find all handler types that handle this command
+                // Find all handler types that handle this request
                 var matchingHandlers = handlerTypes
                     .SelectMany(handlerType =>
                         handlerType.GetInterfaces()

@@ -1,36 +1,36 @@
 # Dispatcher
-Decouple commands, events and their handlers via a dispatcher object.
+Decouple requests, events and their handlers via a dispatcher object.
 
 ## Setup
-Add the NuGet package to your project and register the assemblies that contain your commands, events and their handlers.
+Add the NuGet package to your project and register the assemblies that contain your Requests, events and their handlers.
 ```C#
 services.AddDispatcher(config=>
 {
-    config.AssembliesToScan.Add(typeof(GreetingCommand).Assembly);
+    config.AssembliesToScan.Add(typeof(GreetingRequest).Assembly);
 });
 ```
 
-## Commands
-Commands can be defined by inheriting the `ICommand<T>` interface, where the T parameter is the response type of the command. A command object holds the parameters of a request.
+## Requests
+Requests can be defined by inheriting the `IRequest<TResponse>` interface, where the TResponse parameter is the response type of the Request. A request object holds the parameters of a request.
 ```C#
-public class GreetingCommand : ICommand<string>
+public class GreetingRequest : IRequest<string>
 {
     public string? Name { get; set; }
 }
 
 ```
-Define a handler that processes the command and returns a result. There must be exactly one handler for a command.
+Define a handler that processes the Request and returns a result. There must be exactly one handler for a request.
 ```C#
-public class GreetingHandler : ICommandHandler<GreetingCommand, string>
+public class GreetingHandler : IRequestHandler<GreetingRequest, string>
 {
-   public Task<string> Handle(GreetingCommand command, CancellationToken cancellationToken)
+   public Task<string> Handle(GreetingRequest Request, CancellationToken cancellationToken)
    {
-       return Task.FromResult($"Hello, {command.Name}!");
+       return Task.FromResult($"Hello, {Request.Name}!");
    }
 }
 ```
 
-To use a command, inject the dispatcher via DI and call the `Send` method with the commmand as a parameter. Notice that the HelloWorldGreeting class is decoupled from the GreetingHandler class.
+To use a request, inject the dispatcher via DI and call the `Send` method with the request object. Notice that the HelloWorldGreeting class is decoupled from the GreetingHandler class.
 ```C#
 public class HelloWorldGreeting
 {
@@ -42,8 +42,8 @@ public class HelloWorldGreeting
 
    public async Task<string> GreetAsync()
    {
-       var command = new GreetingCommand { Name = "World" };
-       var response = await _dispatcher.Send(command);
+       var Request = new GreetingRequest { Name = "World" };
+       var response = await _dispatcher.Send(Request);
 
        // Returns "Hello, World!"
        return response;
@@ -72,7 +72,7 @@ public class UserUpdatedHandler : IEventHandler<UserUpdated>
 }
 ```
 Here is an example class that publishes the `UserUpdated` event.
-The `Publish` command returns an `IEnumerable<Task>` with a task for every executing handler. It is up to the publisher to either ignore the tasks, or wait for any or all tasks to complete.
+The `Publish` Request returns an `IEnumerable<Task>` with a task for every executing handler. It is up to the publisher to either ignore the tasks, or wait for any or all tasks to complete.
 ```C#
  public class User
  {

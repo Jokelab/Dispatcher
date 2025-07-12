@@ -1,7 +1,7 @@
 ﻿namespace Dispatcher.Tests.Examples
 {
    
-    public class GreetingCommand : ICommand<string>
+    public class GreetingRequest : IRequest<string>
     {
         public string? Name { get; set; }
     }
