@@ -40,7 +40,7 @@ public static class ServiceCollectionExtensions
         RegisterHandlers(services, combinedTypes, typeof(IEvent), typeof(IEventHandler<>), mustHaveOneHandler: false);
 
         // register open generic behaviors
-        foreach (var behaviorType in configuration.OpenBehaviors)
+        foreach (var behaviorType in configuration.Behaviors)
         {
             if (!behaviorType.IsGenericTypeDefinition)
             {

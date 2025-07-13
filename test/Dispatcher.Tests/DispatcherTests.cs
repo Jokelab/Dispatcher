@@ -14,7 +14,6 @@ namespace Dispatcher.Tests
             services.AddDispatcher(configuration =>
             {
                 configuration.AssembliesToScan.Add(typeof(GreetingRequest).Assembly);
-                configuration.OpenBehaviors.Add(typeof(LoggingBehavior<,>));
             });
 
             var sp = services.BuildServiceProvider();
@@ -78,29 +77,28 @@ namespace Dispatcher.Tests
         }
 
         [Fact]
-        public async Task LoggingBehavior_should_be_invoked_when_added_to_OpenBehaviors()
+        public async Task LoggingBehavior_should_be_invoked_when_command_sent()
         {
             // Arrange
             var services = new ServiceCollection();
             services.AddDispatcher(configuration =>
             {
                 configuration.AssembliesToScan.Add(typeof(GreetingRequest).Assembly);
-                configuration.OpenBehaviors.Add(typeof(LoggingBehavior<,>));
+                configuration.Behaviors.Add(typeof(LoggingBehavior<,>));
             });
+            services.AddSingleton<MessageWriter>();
 
             var sp = services.BuildServiceProvider();
             var dispatcher = sp.GetRequiredService<IDispatcher>();
-
-            using var consoleOutput = new StringWriter();
-            Console.SetOut(consoleOutput);
 
             // Act
             await dispatcher.Send(new GreetingRequest { Name = "Test" });
 
             // Assert
-            var output = consoleOutput.ToString();
-            Assert.Contains("[Start] Handling GreetingRequest", output);
-            Assert.Contains("[End] Handling GreetingRequest", output);
+            var writer = sp.GetRequiredService<MessageWriter>();
+            var messages = writer.GetMessages();
+            Assert.Contains("[Start] Handling GreetingRequest", messages);
+            Assert.Contains("[End] Handling GreetingRequest", messages);
         }
     }
 }

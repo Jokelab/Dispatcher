@@ -11,6 +11,6 @@ public class DispatcherConfiguration
     /// Add explicit types for requests, events and handlers
     /// </summary>
     public List<Type> ExplicitTypes { get; } = [];
-    public List<Type> OpenBehaviors { get; } = [];
+    public List<Type> Behaviors { get; } = [];
 
 }
