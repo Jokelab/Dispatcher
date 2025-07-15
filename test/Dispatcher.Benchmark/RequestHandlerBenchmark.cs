@@ -18,7 +18,6 @@ namespace Dispatcher.Benchmark
             services.AddDispatcher();
             services.AddLogging();
             services.AddMediatR(config => config.RegisterServicesFromAssemblies(typeof(BenchmarkRequest).Assembly));
-            services.AddSingleton<RequestHandlerBenchmark>();
 
             var sp = services.BuildServiceProvider();
             _mediator = sp.GetRequiredService<IMediator>();
