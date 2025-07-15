@@ -7,8 +7,8 @@ namespace Dispatcher.Benchmark
 {
     public class RequestHandlerBenchmark
     {
-        private IMediator _mediator;
-        private IDispatcher _dispatcher;
+        private IMediator? _mediator;
+        private IDispatcher? _dispatcher;
 
 
         [GlobalSetup]
@@ -28,13 +28,13 @@ namespace Dispatcher.Benchmark
         [Benchmark]
         public async Task SendRequestWithMediatR()
         {
-            await _mediator.Send(new BenchmarkRequest());
+            await _mediator!.Send(new BenchmarkRequest());
         }
 
         [Benchmark]
         public async Task SendRequestWithDispatcher()
         {
-            await _dispatcher.Send(new BenchmarkRequest());
+            await _dispatcher!.Send(new BenchmarkRequest());
         }
     }
 }
