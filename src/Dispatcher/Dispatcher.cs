@@ -8,48 +8,18 @@ internal class Dispatcher(IServiceProvider serviceProvider) : IDispatcher
     private const string HandleMethodName = "Handle";
     private readonly IServiceProvider _serviceProvider = serviceProvider;
 
-    // Caches to avoid repeated reflection and type construction
-    private static readonly ConcurrentDictionary<(Type requestType, Type responseType), Type> _handlerTypeCache = new();
-    private static readonly ConcurrentDictionary<(Type requestType, Type responseType), MethodInfo> _handlerMethodCache = new();
-    private static readonly ConcurrentDictionary<(Type requestType, Type responseType), Type> _behaviorTypeCache = new();
-    private static readonly ConcurrentDictionary<(Type requestType, Type responseType), MethodInfo> _behaviorMethodCache = new();
+    private static readonly ConcurrentDictionary<Type, object> _handlerTypeCache = new();
 
-    public async Task<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
+    public Task<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
     {
-        var requestType = request.GetType();
-        var responseType = typeof(TResponse);
-
-        // Cache handler type and method
-        var handlerTypeInterface = _handlerTypeCache.GetOrAdd((requestType, responseType), static key =>
-            typeof(IRequestHandler<,>).MakeGenericType(key.requestType, key.responseType));
-        var handleMethod = _handlerMethodCache.GetOrAdd((requestType, responseType), static key =>
-            typeof(IRequestHandler<,>).MakeGenericType(key.requestType, key.responseType).GetMethod(HandleMethodName)!);
-
-        var handler = _serviceProvider.GetService(handlerTypeInterface);
-        if (handler == null)
+        var handler = (RequestHandlerBase<TResponse>)_handlerTypeCache.GetOrAdd(request.GetType(), static requestType =>
         {
-            throw new InvalidOperationException($"No handler registered for request type {requestType.FullName}.");
-        }
+            var wrapperType = typeof(RequestHandler<,>).MakeGenericType(requestType, typeof(TResponse));
+            var wrapper = Activator.CreateInstance(wrapperType) ?? throw new InvalidOperationException($"Could not create wrapper type for {requestType}");
+            return (RequestHandlerBase<TResponse>)wrapper;
+        });
 
-        Func<Task<TResponse>> handlerDelegate = () => (Task<TResponse>)handleMethod.Invoke(handler, [request, cancellationToken])!;
-
-        // Cache behavior type and method
-        var behaviorTypeInterface = _behaviorTypeCache.GetOrAdd((requestType, responseType), static key =>
-            typeof(IBehavior<,>).MakeGenericType(key.requestType, key.responseType));
-
-        // Get behaviors in reverse order
-        var behaviors = _serviceProvider.GetServices(behaviorTypeInterface).Reverse();
-        var behaviorHandleMethod = _behaviorMethodCache.GetOrAdd((requestType, responseType), static key =>
-            typeof(IBehavior<,>).MakeGenericType(key.requestType, key.responseType).GetMethod(HandleMethodName)!);
-        
-        // Build the handler delegate chain
-        foreach (var behavior in behaviors)
-        {
-            var previousHandler = handlerDelegate;
-            handlerDelegate = () => (Task<TResponse>)behaviorHandleMethod.Invoke(behavior, [request, previousHandler, cancellationToken])!;
-        }
-
-        return await handlerDelegate().ConfigureAwait(false);
+        return handler.Handle(request, _serviceProvider, cancellationToken);
     }
 
     public IEnumerable<Task> Publish(IEvent @event, CancellationToken cancellationToken = default)
