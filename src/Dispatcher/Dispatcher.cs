@@ -8,14 +8,15 @@ internal class Dispatcher(IServiceProvider serviceProvider) : IDispatcher
     private const string HandleMethodName = "Handle";
     private readonly IServiceProvider _serviceProvider = serviceProvider;
 
-    private static readonly ConcurrentDictionary<Type, object> _handlerTypeCache = new();
+    private static readonly ConcurrentDictionary<Type, object> _requestHandlerTypeCache = new();
+    private static readonly ConcurrentDictionary<Type, object> _eventHandlerTypeCache = new();
 
     public Task<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default)
     {
-        var handler = (RequestHandlerBase<TResponse>)_handlerTypeCache.GetOrAdd(request.GetType(), static requestType =>
+        var handler = (RequestHandlerBase<TResponse>)_requestHandlerTypeCache.GetOrAdd(request.GetType(), static requestType =>
         {
             var wrapperType = typeof(RequestHandler<,>).MakeGenericType(requestType, typeof(TResponse));
-            var wrapper = Activator.CreateInstance(wrapperType) ?? throw new InvalidOperationException($"Could not create wrapper type for {requestType}");
+            var wrapper = Activator.CreateInstance(wrapperType) ?? throw new InvalidOperationException($"Could not create wrapper type for request {requestType}");
             return (RequestHandlerBase<TResponse>)wrapper;
         });
 
@@ -24,23 +25,13 @@ internal class Dispatcher(IServiceProvider serviceProvider) : IDispatcher
 
     public IEnumerable<Task> Publish(IEvent @event, CancellationToken cancellationToken = default)
     {
-        var eventType = @event.GetType();
-        var handlerTypeInterface = typeof(IEventHandler<>).MakeGenericType(eventType);
-        var handlers = _serviceProvider.GetServices(handlerTypeInterface);
-        var tasks = new List<Task>();
-        if (!handlers.Any())
-            return tasks;
 
-        var handleMethod = handlerTypeInterface.GetMethod(HandleMethodName);
-        if (handleMethod == null)
-            throw new InvalidOperationException($"{handlerTypeInterface.FullName} does not implement Handle method.");
-
-        foreach (var handler in handlers)
+        var handler = (EventHandlerBase)_requestHandlerTypeCache.GetOrAdd(@event.GetType(), static eventType =>
         {
-            var task = (Task)handleMethod.Invoke(handler, [@event, cancellationToken])!;
-            if (task != null)
-                tasks.Add(task);
-        }
-        return tasks;
+            var wrapperType = typeof(EventHandler<>).MakeGenericType(eventType);
+            var wrapper = Activator.CreateInstance(wrapperType) ?? throw new InvalidOperationException($"Could not create wrapper type for event {eventType}");
+            return (EventHandlerBase)wrapper;
+        });
+        return handler.Handle(@event, _serviceProvider, cancellationToken);
     }
 }
