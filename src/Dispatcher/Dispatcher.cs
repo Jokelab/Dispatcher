@@ -1,13 +1,9 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using System.Collections.Concurrent;
-using System.Reflection;
+﻿using System.Collections.Concurrent;
 
 namespace Dispatcher;
 internal class Dispatcher(IServiceProvider serviceProvider) : IDispatcher
 {
-    private const string HandleMethodName = "Handle";
     private readonly IServiceProvider _serviceProvider = serviceProvider;
-
     private static readonly ConcurrentDictionary<Type, object> _requestHandlerTypeCache = new();
     private static readonly ConcurrentDictionary<Type, object> _eventHandlerTypeCache = new();
 
@@ -25,7 +21,6 @@ internal class Dispatcher(IServiceProvider serviceProvider) : IDispatcher
 
     public IEnumerable<Task> Publish(IEvent @event, CancellationToken cancellationToken = default)
     {
-
         var handler = (EventHandlerBase)_requestHandlerTypeCache.GetOrAdd(@event.GetType(), static eventType =>
         {
             var wrapperType = typeof(EventHandler<>).MakeGenericType(eventType);
