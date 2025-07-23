@@ -16,13 +16,12 @@ namespace Dispatcher
 
             // Build the handler delegate chain
 
-            var behaviors = serviceProvider.GetServices<IBehavior<TRequest, TResponse>>();
-            var behaviorArray = behaviors.ToArray();
+            var behaviors = serviceProvider.GetServices<IBehavior<TRequest, TResponse>>().ToArray();
             // Avoid LINQ Reverse for performance, use for loop instead
-            for (int i = behaviorArray.Length - 1; i >= 0; i--)
+            for (int i = behaviors.Length - 1; i >= 0; i--)
             {
                 var previousHandler = handlerDelegate;
-                var behavior = behaviorArray[i];
+                var behavior = behaviors[i];
                 handlerDelegate = () => behavior.Handle((TRequest)request, previousHandler, cancellationToken);
             }
 

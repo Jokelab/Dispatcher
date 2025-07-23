@@ -21,7 +21,7 @@ internal class Dispatcher(IServiceProvider serviceProvider) : IDispatcher
 
     public IEnumerable<Task> Publish(IEvent @event, CancellationToken cancellationToken = default)
     {
-        var handler = (EventHandlerBase)_requestHandlerTypeCache.GetOrAdd(@event.GetType(), static eventType =>
+        var handler = (EventHandlerBase)_eventHandlerTypeCache.GetOrAdd(@event.GetType(), static eventType =>
         {
             var wrapperType = typeof(EventHandler<>).MakeGenericType(eventType);
             var wrapper = Activator.CreateInstance(wrapperType) ?? throw new InvalidOperationException($"Could not create wrapper type for event {eventType}");
