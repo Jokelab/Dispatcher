@@ -91,3 +91,41 @@ The `Publish` Request returns an `IEnumerable<Task>` with a task for every execu
      }
  }
  ```
+
+## Behaviors
+Behaviors allow to add instructions before and after a requesthandler runs. They will not be invoked for eventhandlers.
+The following example logs the start and end of every request.
+
+```C#
+public class LoggingBehavior<TRequest, TResponse> : IBehavior<TRequest, TResponse>
+{
+    private readonly ILogger _logger;
+    public LoggingBehavior(ILogger logger)
+    {
+        _logger = logger;
+    }
+    public async Task<TResponse> Handle(TRequest request, Func<Task<TResponse>> next, CancellationToken cancellationToken)
+    {
+        _logger.LogInformation($"[Start] Handling {typeof(TRequest).Name}");
+
+        var response = await next();
+
+        _logger.LogInformation($"[End] Handling {typeof(TRequest).Name}");
+        return response;
+    }
+}
+```
+
+Behaviors must be explicitly registered. Their order is also important since the calls will be wrapped.
+Consider the following setup:
+```C#
+services.AddDispatcher(configuration =>
+{
+   configuration.AssembliesToScan.Add(typeof(GreetingRequest).Assembly);
+   configuration.Behaviors.Add(typeof(LoggingBehavior<,>));
+   configuration.Behaviors.Add(typeof(ValidationBehavior<,>));
+});
+```
+
+When a greeting request is dispatched the logging behavior runs first, then the validation behavior. Every behavior can break the chain when it doesn't call the `next()` behavior.
+
