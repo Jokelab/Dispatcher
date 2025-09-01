@@ -1,5 +1,5 @@
 ﻿using System.Reflection;
-
+namespace Dispatcher;
 public class DispatcherConfiguration
 {
     /// <summary>
